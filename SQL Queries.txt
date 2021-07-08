@@ -1,16 +1,20 @@
 --// QUERY 1
+--// Find the person(s) who was/were vaccinated after 16.06.2021 in the cities whose name starts with "G" or "V".
 SELECT pers.*
 FROM person as pers INNER JOIN vaccination as vacc ON pers."id"=vacc."person_id"
 WHERE (LEFT(pers."city",1) = 'V' OR LEFT(pers."city",1) = 'G')
 AND vacc."date" >= '2021-06-16';
 
 --// QUERY 2
+--// Find the healthcare professionals who were responsible for vaccinating the "Biontech" vaccine to the people who are elder than 50.
 SELECT hp.*
 FROM person INNER JOIN vaccination as vacc ON person."id" = vacc."person_id"
 INNER JOIN healthcare_professional as hp ON hp."id" = vacc."hp_id"
 WHERE person."age" > 50 AND vacc."vc_id" = 2;
 
 --// QUERY 3
+--// Add a new column named "Country_Code" to the table keeping the vaccine information based on country name (i.e. if the counrty name is Turkey, then the county 
+--// code is "TR") 
 ALTER TABLE vaccine
 ADD COLUMN country_code varchar(2);
 
@@ -23,11 +27,13 @@ SET country_code = 'DE'
 WHERE country = 'Germany';
 
 --// QUERY 4
+--// Find the number of people who were vaccinated according to each vaccine type.
 SELECT "type", COUNT(vc_id)
 FROM vaccination as vn INNER JOIN vaccine as vc ON vn."vc_id" = vc."id"
 GROUP BY vc.type;
 
 --// QUERY 5
+--// Find the youngest person who was vaccinated with "Sinovac" in "Dokuz Eylül University Hospital".
 WITH prefs as(
 	SELECT person.* 
 	FROM person INNER JOIN vaccination as vacc ON person."id" = vacc."person_id"
@@ -41,6 +47,7 @@ ORDER BY "age" ASC
 LIMIT 1;
 
 --// QUERY 6
+--// Find the selected vaccine type, vaccination date and the assigned medical center for the person whose name "Ali Aslan". 
 SELECT person."name", person."surname", vc."type", vn."date", mc."name"
 FROM person INNER JOIN vaccination as vn ON person."id" = vn."person_id"
 INNER JOIN vaccine as vc ON vn."vc_id" = vc."id"
@@ -49,6 +56,7 @@ INNER JOIN medical_center as mc ON hp."MC_id" = mc."id"
 WHERE person."name" = 'Ali Aslan';
 
 --// QUERY 7
+--// Find the most risky city according to state of health.
 WITH prefs as(
 	SELECT * FROM person INNER JOIN hes 
 	ON person."hes_code" = hes."hes_code"
@@ -60,15 +68,18 @@ ORDER BY cnt DESC
 LIMIT 1;
 
 --// QUERY 8
+--//Update the state of health of the person whose phone number is "05534849876" as "Risky".
 UPDATE hes
 SET "state_of_health" = 'risky'
 WHERE "phone_number" = 05534849876;
 
 --// QUERY 9
+--// Delete the people over 65 who have not yet been vaccinated.
 DELETE FROM person
 WHERE person."hes_code" IN (SELECT "hes_code" FROM hes WHERE "vaccination_info" = 'unvaccinated') AND
 person."age" >= 65;
 
 --// QUERY 10
+--// Add a new vaccine type named "Sputnik V" produced in Russia.
 INSERT INTO vaccine("type","country")
 VALUES('Sputnik V','Russia');
