@@ -1,0 +1,74 @@
+--// QUERY 1
+SELECT pers.*
+FROM person as pers INNER JOIN vaccination as vacc ON pers."id"=vacc."person_id"
+WHERE (LEFT(pers."city",1) = 'V' OR LEFT(pers."city",1) = 'G')
+AND vacc."date" >= '2021-06-16';
+
+--// QUERY 2
+SELECT hp.*
+FROM person INNER JOIN vaccination as vacc ON person."id" = vacc."person_id"
+INNER JOIN healthcare_professional as hp ON hp."id" = vacc."hp_id"
+WHERE person."age" > 50 AND vacc."vc_id" = 2;
+
+--// QUERY 3
+ALTER TABLE vaccine
+ADD COLUMN country_code varchar(2);
+
+UPDATE vaccine
+SET country_code = 'CN'
+WHERE country = 'China';
+
+UPDATE vaccine
+SET country_code = 'DE'
+WHERE country = 'Germany';
+
+--// QUERY 4
+SELECT "type", COUNT(vc_id)
+FROM vaccination as vn INNER JOIN vaccine as vc ON vn."vc_id" = vc."id"
+GROUP BY vc.type;
+
+--// QUERY 5
+WITH prefs as(
+	SELECT person.* 
+	FROM person INNER JOIN vaccination as vacc ON person."id" = vacc."person_id"
+	INNER JOIN healthcare_professional as hp ON hp."id" = vacc."hp_id"
+	INNER JOIN medical_center as mc ON hp."MC_id" = mc."id"
+	WHERE vacc."vc_id" = 1 AND mc."name" = 'Dokuz Eylül University Hospital'
+)
+SELECT "name","surname","age"
+FROM prefs GROUP BY "age","name","surname"
+ORDER BY "age" ASC
+LIMIT 1;
+
+--// QUERY 6
+SELECT person."name", person."surname", vc."type", vn."date", mc."name"
+FROM person INNER JOIN vaccination as vn ON person."id" = vn."person_id"
+INNER JOIN vaccine as vc ON vn."vc_id" = vc."id"
+INNER JOIN healthcare_professional as hp ON vn."hp_id" = hp."id"
+INNER JOIN medical_center as mc ON hp."MC_id" = mc."id"
+WHERE person."name" = 'Ali Aslan';
+
+--// QUERY 7
+WITH prefs as(
+	SELECT * FROM person INNER JOIN hes 
+	ON person."hes_code" = hes."hes_code"
+	WHERE hes."state_of_health" = 'risky'
+)
+SELECT "city", COUNT("city") as cnt
+FROM prefs GROUP BY "city"
+ORDER BY cnt DESC
+LIMIT 1;
+
+--// QUERY 8
+UPDATE hes
+SET "state_of_health" = 'risky'
+WHERE "phone_number" = 05534849876;
+
+--// QUERY 9
+DELETE FROM person
+WHERE person."hes_code" IN (SELECT "hes_code" FROM hes WHERE "vaccination_info" = 'unvaccinated') AND
+person."age" >= 65;
+
+--// QUERY 10
+INSERT INTO vaccine("type","country")
+VALUES('Sputnik V','Russia');
